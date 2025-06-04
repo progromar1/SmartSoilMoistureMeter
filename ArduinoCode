@@ -1,0 +1,137 @@
+#define RED 6
+#define GREEN 5
+#define BLUE 3
+#include <Sleep_n0m1.h>
+
+int moisture_Sensor = A1;
+int moisture_Value = 0;
+double redVal;
+double greenVal;
+double blueVal;
+Sleep sleep;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(moisture_Sensor, INPUT);
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+  pinMode(BLUE, OUTPUT);
+
+  for (int i = 0; i < 155 ; i++) {
+    redVal += 0.75;
+    greenVal += 1.57;
+    blueVal += 1.54;
+    analogWrite(RED, redVal);
+    analogWrite(GREEN, greenVal);
+    analogWrite(BLUE, blueVal);
+    delay(5);
+  }
+
+  delay(1000);
+
+  for (int i = 0; i < 155; i++) {
+    redVal -= 0.75;
+    greenVal -= 1.57;
+    blueVal -= 1.54;
+    analogWrite(RED, redVal);
+    analogWrite(GREEN, greenVal);
+    analogWrite(BLUE, blueVal);
+    delay(5);
+  }
+}
+
+void loop() {
+  moisture_Value = analogRead(moisture_Sensor); //Actual sensor reading
+  Serial.println(moisture_Value);  //Used for debugging to create characteristic curve for sensor
+
+  //if the plant needs water (RED)
+  if ( moisture_Value >= 800 ) {
+    //loop for gradient color progression, for smoother LED appearance
+    for (int i = 0; i < 155; i++){
+      redVal += 1;
+      blueVal += 0.08;
+      greenVal += 0.16;
+
+      analogWrite(RED, redVal);
+      analogWrite(GREEN, greenVal);
+      analogWrite(BLUE, blueVal);
+      //digitalWrite(RED, HIGH); //wanted to see the difference between digitalWrite and analogWrite
+      delay(5);
+      //digitalWrite(RED, LOW);
+    }
+
+    delay(500);
+
+    for (int i = 0; i < 155; i++) {
+      redVal -= 1;
+      blueVal -= 0.08;
+      greenVal -= 0.16;
+
+      analogWrite(RED, redVal);
+      analogWrite(GREEN, greenVal);
+      analogWrite(BLUE, blueVal);
+
+      delay(5);
+    }
+  }
+
+  if ( moisture_Value <= 400 ) { //if the plant is overwatered (BLUE)
+    for (int i = 0; i < 155; i++) {
+      blueVal += 1;
+      greenVal += 0.08;
+      redVal += 0.16;
+
+      analogWrite(BLUE, blueVal);
+      analogWrite(GREEN, greenVal);
+      analogWrite(RED, redVal);
+
+      //digitalWrite(BLUE, HIGH);
+      delay(5);
+      //digitalWrite(BLUE, LOW);
+    }
+
+    delay(1000);
+
+    for (int i = 0; i < 155; i++) {
+      blueVal -= 1;
+      greenVal -= 0.08;
+      redVal -= 0.16;
+
+      analogWrite(BLUE, blueVal);
+      analogWrite(GREEN, greenVal);
+      analogWrite(RED, redVal);
+      delay(5);
+    }
+  }
+
+  if ( moisture_Value <= 750 && moisture_Value >= 410) { //if the plant has enough water (GREEN)
+    for (int i = 0; i < 155; i++) {
+      greenVal += 1;
+      redVal += 0.08;
+      blueVal += 0.16;
+
+      analogWrite(GREEN, greenVal);
+      analogWrite(RED, redVal);
+      analogWrite(BLUE, blueVal);
+      //digitalWrite(GREEN, HIGH);
+      delay(5);
+      //digitalWrite(GREEN, LOW);
+    }
+
+    delay(1000);
+
+    for (int i = 0; i < 155; i++) {
+      greenVal -= 1;
+      redVal -= 0.08;
+      blueVal -= 0.16;
+
+      analogWrite(GREEN, greenVal);
+      analogWrite(RED, redVal);
+      analogWrite(BLUE, blueVal);
+      delay(5);
+    }
+  }
+
+  sleep.pwrDownMode();  //Sleep down mode to conserve power
+  sleep.sleepDelay(8000);  //8 seconds was arbitrary
+}
